@@ -1,5 +1,6 @@
-
-export enum CellStatus {
+enum CellStatus {
+  Alive = 1,
   Dead = 0,
-  Alive = 1
 }
+
+export default CellStatus;
