@@ -1,23 +1,3 @@
-/*
-Create
-Next generation
-Alive neighbors in coordinates
-[[Dead, Dead]] (0,0) => 0
-[[Dead, Alive]] (0,0) => 1
-
-[[Alive, Dead, Alive]] (0, 1) => 2
-
-[[Alive, Dead, Alive]] 
-[[Alive, Dead, Alive]] (0, 1) => 4
-
-[[Alive, Alive, Alive]] 
-[[Alive, Dead, Alive]] (1, 1) => 5
-
-[[Alive, Alive, Alive]] 
-[[Alive, Dead, Alive]] 
-[[Alive, Alive, Alive]] (1, 1) => 8
-*/
-
 import Cell from '../core/cell';
 import CellStatus from '../core/cell-status';
 
@@ -29,7 +9,14 @@ class World {
     return new World(cellMatrix);
   }
 
-  neighborsFor(row: number, column: number): number {
+  nextGeneration() {
+    const nextGeneration = this.cellMatrix.map((row, rowIndex) =>
+      row.map((cell, columnIndex) => cell.regenerate(this.aliveNeighborsFor(rowIndex, columnIndex)))
+    );
+    return new World(nextGeneration);
+  }
+
+  private aliveNeighborsFor(row: number, column: number): number {
     return (
       this.aliveNeighborsInPreviousRow(row, column) +
       this.aliveNeighborsInNextColumn(row, column) +
@@ -93,28 +80,25 @@ describe('The world', () => {
     expect(World.createFrom(initialState).cellMatrix).toEqual([[Cell.create(Dead)]]);
   });
 
-  it('count neighbors for a given coordinates', () => {
-    expect(World.createFrom([[Dead, Dead]]).neighborsFor(0, 0)).toBe(0);
-    expect(World.createFrom([[Dead, Alive]]).neighborsFor(0, 0)).toBe(1);
-    expect(World.createFrom([[Alive, Dead, Alive]]).neighborsFor(0, 1)).toBe(2);
-    expect(
-      World.createFrom([
-        [Alive, Dead, Alive],
-        [Alive, Dead, Alive],
-      ]).neighborsFor(0, 1)
-    ).toBe(4);
-    expect(
-      World.createFrom([
-        [Alive, Alive, Alive],
-        [Alive, Dead, Alive],
-      ]).neighborsFor(1, 1)
-    ).toBe(5);
-    expect(
-      World.createFrom([
-        [Alive, Alive, Alive],
-        [Alive, Dead, Alive],
-        [Alive, Alive, Alive],
-      ]).neighborsFor(1, 1)
-    ).toBe(8);
+  it('generate status for the next generations', () => {
+    const world = World.createFrom([
+      [Dead, Alive, Dead],
+      [Dead, Alive, Dead],
+      [Dead, Alive, Dead],
+    ]);
+
+    const nextWorld = world.nextGeneration();
+
+    expect(nextWorld.cellMatrix).toEqual([
+      [Cell.create(Dead), Cell.create(Dead), Cell.create(Dead)],
+      [Cell.create(Alive), Cell.create(Alive), Cell.create(Alive)],
+      [Cell.create(Dead), Cell.create(Dead), Cell.create(Dead)],
+    ]);
+
+    expect(nextWorld.nextGeneration().cellMatrix).toEqual([
+      [Cell.create(Dead), Cell.create(Alive), Cell.create(Dead)],
+      [Cell.create(Dead), Cell.create(Alive), Cell.create(Dead)],
+      [Cell.create(Dead), Cell.create(Alive), Cell.create(Dead)],
+    ]);
   });
 });
